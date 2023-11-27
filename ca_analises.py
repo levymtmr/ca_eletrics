@@ -14,6 +14,27 @@ class Ca:
 
     def _degrees_to_radians(self, degrees):
         return degrees * np.pi / 180
+    
+    def _calc_impedancia(self, R, L, C):
+        omega = 2 * np.pi * self.frequency
+        X_L = omega * L
+        X_C = 1 / (omega * C) if C != 0 else np.inf
+        Z = complex(R, X_L - X_C)
+        return Z
+    
+    def ligacao_estrela(self, R, L, C):
+        Z = self._calc_impedancia(R, L, C)
+        v_linha = self.v_peak
+        i_linha = abs(v_linha/ Z)
+        print({'V_Linha_Estrela': v_linha, 'I_Linha_Estrela': i_linha, 'Z_Estrela': Z})
+        return {'V_Linha_Estrela': v_linha, 'I_Linha_Estrela': i_linha, 'Z_Estrela': Z}
+    
+    def ligacao_delta(self, R, L, C):
+        Z = self._calc_impedancia(R, L, C)
+        v_linha = self.v_peak
+        i_linha = abs(v_linha / Z * np.sqrt(3))
+        print({'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'Z_Delta': Z})
+        return {'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'Z_Delta': Z}
 
     def plot_tensao_corrente(self, v_peak, v_angle, i_peak, i_angle, frequency):
         # labels para as legendas dos graficos
