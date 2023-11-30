@@ -24,17 +24,22 @@ class Ca:
     
     def ligacao_estrela(self, R, L, C):
         Z = self._calc_impedancia(R, L, C)
-        v_linha = self.v_peak
-        i_linha = abs(v_linha/ Z)
-        print({'V_Linha_Estrela': v_linha, 'I_Linha_Estrela': i_linha, 'Z_Estrela': Z})
-        return {'V_Linha_Estrela': v_linha, 'I_Linha_Estrela': i_linha, 'Z_Estrela': Z}
+        v_linha = self.v_peak * np.sqrt(3)
+        v_linha_angle = self.v_angle + 30  # Deslocamento de fase da tensão de linha
+        i_linha = abs(v_linha / Z)  # Módulo da corrente
+        i_linha_angle = np.angle(v_linha / Z, deg=True)  # Ângulo de fase da corrente
+        print({'V_Linha_Estrela': v_linha, 'V_Linha_Angle_Estrela': v_linha_angle, 
+                'I_Linha_Estrela': i_linha, 'I_Linha_Angle_Estrela': i_linha_angle})
+        return {'V_Linha_Estrela': v_linha, 'V_Linha_Angle_Estrela': v_linha_angle, 
+                'I_Linha_Estrela': i_linha, 'I_Linha_Angle_Estrela': i_linha_angle}
     
     def ligacao_delta(self, R, L, C):
         Z = self._calc_impedancia(R, L, C)
         v_linha = self.v_peak
         i_linha = abs(v_linha / Z * np.sqrt(3))
-        print({'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'Z_Delta': Z})
-        return {'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'Z_Delta': Z}
+        i_linha_angle = np.angle(v_linha / Z, deg=True) + 30  # Deslocamento de fase da corrente de linha
+        print({'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'I_Linha_Angle_Delta': i_linha_angle})
+        return {'V_Linha_Delta': v_linha, 'I_Linha_Delta': i_linha, 'I_Linha_Angle_Delta': i_linha_angle}
 
     def plot_tensao_corrente(self, v_peak, v_angle, i_peak, i_angle, frequency):
         # labels para as legendas dos graficos
