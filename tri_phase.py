@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
+import cmath
+import math
 
 
 def request_complex_input(prompt):
@@ -36,6 +38,12 @@ def calculate_and_display():
         zbn = complex(*map(float, zbn_entry.get().split(',')))
         zcn = complex(*map(float, zcn_entry.get().split(',')))
 
+        # Função auxiliar para converter para coordenadas polares e formatar a saída
+        def to_polar_str(complex_number):
+            magnitude, angle = cmath.polar(complex_number)
+            angle_deg = math.degrees(angle)  # Convertendo radianos para graus
+            return f"{magnitude:.2f} ∠ {angle_deg:.2f}°"
+
         ia, ib, ic = van / zan, vbn / zbn, vcn / zcn
         pa, pb, pc = van * ia.conjugate(), vbn * ib.conjugate(), vcn * ic.conjugate()
         p_total = pa + pb + pc
@@ -49,15 +57,15 @@ def calculate_and_display():
         for i in tree.get_children():
             tree.delete(i)
 
-        # Adicionando os resultados na tabela
-        tree.insert("", "end", values=("Ia", ia))
-        tree.insert("", "end", values=("Ib", ib))
-        tree.insert("", "end", values=("Ic", ic))
-        tree.insert("", "end", values=("Pa", pa))
-        tree.insert("", "end", values=("Pb", pb))
-        tree.insert("", "end", values=("Pc", pc))
-        tree.insert("", "end", values=("Ptotal", p_total))
-        tree.insert("", "end", values=("Qtotal", q_total))
+        # Adicionando os resultados na tabela, convertidos para coordenadas polares
+        tree.insert("", "end", values=("Ia", to_polar_str(ia)))
+        tree.insert("", "end", values=("Ib", to_polar_str(ib)))
+        tree.insert("", "end", values=("Ic", to_polar_str(ic)))
+        tree.insert("", "end", values=("Pa", to_polar_str(pa)))
+        tree.insert("", "end", values=("Pb", to_polar_str(pb)))
+        tree.insert("", "end", values=("Pc", to_polar_str(pc)))
+        tree.insert("", "end", values=("Ptotal", to_polar_str(p_total)))
+        tree.insert("", "end", values=("Qtotal", q_total))  # Qtotal permanece como está, já que é um valor real
         tree.insert("", "end", values=("PFa", f"{pf_a} ({type_a})"))
         tree.insert("", "end", values=("PFb", f"{pf_b} ({type_b})"))
         tree.insert("", "end", values=("PFc", f"{pf_c} ({type_c})"))
