@@ -29,6 +29,12 @@ def calculate_power_factor_and_type(power):
     circuit_type = "Indutivo" if power_factor > 0 else "Capacitivo"
     return power_factor, circuit_type
 
+def update_and_calculate():
+    # Limpa a tabela antes de recalcular
+    for i in tree.get_children():
+        tree.delete(i)
+    calculate_and_display()
+
 def calculate_and_display():
     try:
         van = complex(*map(float, van_entry.get().split(',')))
@@ -38,14 +44,28 @@ def calculate_and_display():
         zbn = complex(*map(float, zbn_entry.get().split(',')))
         zcn = complex(*map(float, zcn_entry.get().split(',')))
 
+        connection_type = connection_var.get()
+
+        if connection_type == "Y-Y":
+            ia, ib, ic = van / zan, vbn / zbn, vcn / zcn
+        elif connection_type == "Y-Δ":
+            # Para a ligação Y-Δ, ajustamos as tensões e correntes
+            # A tensão de fase em Y é igual à tensão de linha em Δ
+            # A corrente de linha em Δ é sqrt(3) vezes a corrente de fase em Y
+            sqrt_3 = math.sqrt(3)
+            ia, ib, ic = (van / zan) * sqrt_3, (vbn / zbn) * sqrt_3, (vcn / zcn) * sqrt_3
+
         # Função auxiliar para converter para coordenadas polares e formatar a saída
         def to_polar_str(complex_number):
             magnitude, angle = cmath.polar(complex_number)
             angle_deg = math.degrees(angle)  # Convertendo radianos para graus
             return f"{magnitude:.2f} ∠ {angle_deg:.2f}°"
+        
+        def to_absolute_str(complex_number):
+            return f"{complex_number.real:.2f}"
 
         ia, ib, ic = van / zan, vbn / zbn, vcn / zcn
-        pa, pb, pc = van * ia.conjugate(), vbn * ib.conjugate(), vcn * ic.conjugate()
+        pa, pb, pc = van * ia.real, vbn * ib.real, vcn * ic.real
         p_total = pa + pb + pc
         q_total = pa.imag + pb.imag + pc.imag
 
@@ -61,9 +81,9 @@ def calculate_and_display():
         tree.insert("", "end", values=("Ia", to_polar_str(ia)))
         tree.insert("", "end", values=("Ib", to_polar_str(ib)))
         tree.insert("", "end", values=("Ic", to_polar_str(ic)))
-        tree.insert("", "end", values=("Pa", to_polar_str(pa)))
-        tree.insert("", "end", values=("Pb", to_polar_str(pb)))
-        tree.insert("", "end", values=("Pc", to_polar_str(pc)))
+        tree.insert("", "end", values=("Pa", to_absolute_str(pa)))
+        tree.insert("", "end", values=("Pb", to_absolute_str(pb)))
+        tree.insert("", "end", values=("Pc", to_absolute_str(pc)))
         tree.insert("", "end", values=("Ptotal", to_polar_str(p_total)))
         tree.insert("", "end", values=("Qtotal", q_total))  # Qtotal permanece como está, já que é um valor real
         tree.insert("", "end", values=("PFa", f"{pf_a} ({type_a})"))
@@ -78,6 +98,11 @@ def calculate_and_display():
 # Configuração da janela Tkinter
 root = tk.Tk()
 root.title("Cálculo de Circuitos Trifásicos")
+
+connection_var = tk.StringVar(value="Y-Y")  # Valor padrão
+
+ttk.Radiobutton(root, text="Estrela-Estrela (Y-Y)", variable=connection_var, value="Y-Y").pack()
+ttk.Radiobutton(root, text="Estrela-Delta (Y-Δ)", variable=connection_var, value="Y-Δ").pack()
 
 van_entry = tk.Entry(root)
 vbn_entry = tk.Entry(root)
@@ -99,7 +124,7 @@ zbn_entry.pack()
 tk.Label(root, text="Zcn (real,imag):").pack()
 zcn_entry.pack()
 
-calculate_button = tk.Button(root, text="Calcular", command=calculate_and_display)
+calculate_button = tk.Button(root, text="Calcular", command=update_and_calculate)
 calculate_button.pack()
 
 # Configuração da tabela (Treeview)
