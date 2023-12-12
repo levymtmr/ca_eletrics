@@ -52,7 +52,7 @@ ttk.Radiobutton(root, text="Estrela-Delta",
 
 # Botões para calcular e limpar
 results = {label: tk.StringVar() for label in [
-    "Ia", "Ib", "Ic", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "Ps","FP", "natureza"]}
+    "Ia", "Ib", "Ic", "Pa", "Pb", "Pc", "Pt", "Qa", "Qb", "Qc", "Qt", "St","FP", "natureza"]}
 ttk.Button(root, text="Calcular", command=lambda: atualizar_resultados(
     calcular_valores(entries, config_var), results)).pack(pady=5)
 ttk.Button(root, text="Limpar", command=lambda: limpar_campos(
