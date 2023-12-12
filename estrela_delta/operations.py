@@ -7,6 +7,13 @@ def complex_to_polar(complex_number: complex):
     angle_degree = math.degrees(angulo_rad)
     return (magnitude, angle_degree)
 
+def converter_polar_para_retangular(polar):
+    modulo, angulo = polar
+    # A função rect recebe argumentos em termos de (módulo, ângulo em radianos)
+    # Portanto, é necessário converter o ângulo de graus para radianos
+    angulo_radianos = math.radians(angulo)
+    return cmath.rect(modulo, angulo_radianos)
+
 def polar_division(a, b):
     real = a[0] / b[0]
     angle = a[1] - b[1]
@@ -20,9 +27,9 @@ def start_current(tension: complex, impendancy: complex) -> (float, float):
 
 def delta_current(tension: complex, impendancy: complex):
     polar_tension = complex_to_polar(tension)
-    phase_tension = (math.sqrt(3) * polar_tension[0], polar_tension[1] + 30)
+    line_tension = (math.sqrt(3) * polar_tension[0], polar_tension[1] + 30)
     polar_impendancy = complex_to_polar(impendancy)
-    current_polar = polar_division(phase_tension, polar_impendancy)
+    current_polar = polar_division(line_tension, polar_impendancy)
     return current_polar
 
 def formatar_valor(valor):
@@ -64,9 +71,15 @@ def calculate_estrela_estrela(entries):
     resultados = {}
     try:
         # Converter entradas para complexos
-        Van = complex(*map(float, entries['Van'].get().split(',')))
-        Vbn = complex(*map(float, entries['Vbn'].get().split(',')))
-        Vcn = complex(*map(float, entries['Vcn'].get().split(',')))
+        Van_polar = tuple(map(float, entries['Van'].get().split(',')))
+        Vbn_polar = tuple(map(float, entries['Vbn'].get().split(',')))
+        Vcn_polar = tuple(map(float, entries['Vcn'].get().split(',')))
+
+        # Converter coordenadas polares para retangulares
+        Van = converter_polar_para_retangular(Van_polar)
+        Vbn = converter_polar_para_retangular(Vbn_polar)
+        Vcn = converter_polar_para_retangular(Vcn_polar)
+
         Zan = complex(*map(float, entries['Zan'].get().split(',')))
         Zbn = complex(*map(float, entries['Zbn'].get().split(',')))
         Zcn = complex(*map(float, entries['Zcn'].get().split(',')))
@@ -76,7 +89,6 @@ def calculate_estrela_estrela(entries):
         Ib = start_current(Vbn, Zbn)
         Ic = start_current(Vcn, Zcn)
         
-
         # Calcular potências médias nos ramos
         Pa = calculate_power(complex_to_polar(Van), Ia)
         Pb = calculate_power(complex_to_polar(Vbn), Ib)
@@ -98,25 +110,26 @@ def calculate_estrela_estrela(entries):
         FP = Pt / (Pt ** 2 + (Qa + Qb + Qc) ** 2) ** 0.5
         natureza = "Indutiva" if FP > 0 else "Capacitiva"
 
+       
+
         # Armazenar os resultados
         resultados = {
-            'Ia': formatar_valor(Ia),
-            'Ib': formatar_valor(Ib),
-            'Ic': formatar_valor(Ic),
-            'Pa': formatar_valor(Pa),
-            'Pb': formatar_valor(Pb),
-            'Pc': formatar_valor(Pc),
-            'Pt': formatar_valor(Pt),
-            'Qa': formatar_valor(Qa),
-            'Qb': formatar_valor(Qb),
-            'Qc': formatar_valor(Qc),
-            'Qt': formatar_valor(Qt),
-            'PotApar': formatar_valor(potencia_aparente),
+            'Ia': "{} (A)".format(formatar_valor(Ia)),
+            'Ib': "{} (A)".format(formatar_valor(Ib)),
+            'Ic': "{} (A)".format(formatar_valor(Ic)),
+            'Pa': "{} (W)".format(formatar_valor(Pa)),
+            'Pb': "{} (W)".format(formatar_valor(Pb)),
+            'Pc': "{} (W)".format(formatar_valor(Pc)),
+            'Pt': "{} (W)".format(formatar_valor(Pt)),
+            'Qa': "{} (VAr)".format(formatar_valor(Qa)),
+            'Qb': "{} (VAr)".format(formatar_valor(Qb)),
+            'Qc': "{} (VAr)".format(formatar_valor(Qc)),
+            'Qt': "{} (VAr)".format(formatar_valor(Qt)),
+            'Ps': "{} (VA)".format(formatar_valor(potencia_aparente)),
             # A natureza do FP (indutiva/capacitiva) permanece como uma string
             'FP': formatar_valor(FP),
             "natureza": natureza
         }
-
     except ValueError:
         print("Verifique as entradas. Elas devem ser números separados por vírgulas.")
 
@@ -126,9 +139,15 @@ def calculate_delta_estrela(entries):
     resultados = {}
     try:
         # Converter entradas para complexos
-        Van = complex(*map(float, entries['Van'].get().split(',')))
-        Vbn = complex(*map(float, entries['Vbn'].get().split(',')))
-        Vcn = complex(*map(float, entries['Vcn'].get().split(',')))
+        Van_polar = tuple(map(float, entries['Van'].get().split(',')))
+        Vbn_polar = tuple(map(float, entries['Vbn'].get().split(',')))
+        Vcn_polar = tuple(map(float, entries['Vcn'].get().split(',')))
+
+        # Converter coordenadas polares para retangulares
+        Van = converter_polar_para_retangular(Van_polar)
+        Vbn = converter_polar_para_retangular(Vbn_polar)
+        Vcn = converter_polar_para_retangular(Vcn_polar)
+
         Zan = complex(*map(float, entries['Zan'].get().split(',')))
         Zbn = complex(*map(float, entries['Zbn'].get().split(',')))
         Zcn = complex(*map(float, entries['Zcn'].get().split(',')))
