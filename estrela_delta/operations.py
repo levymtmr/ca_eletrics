@@ -26,11 +26,17 @@ def start_current(tension: complex, impendancy: complex) -> (float, float):
     return polar_current
 
 def delta_current(tension: complex, impendancy: complex):
-    polar_tension = complex_to_polar(tension)
-    line_tension = (math.sqrt(3) * polar_tension[0], polar_tension[1] + 30)
-    polar_impendancy = complex_to_polar(impendancy)
-    current_polar = polar_division(line_tension, polar_impendancy)
-    return current_polar
+    polar_inpendancy = complex_to_polar(impendancy)
+    current = polar_division(tension, polar_inpendancy)
+    return current
+
+def phase_tension_to_line_tension(tension: complex):
+    convert_tension = complex_to_polar(tension)
+    module = convert_tension[0]
+    angle = convert_tension[1]
+    line_tension = module * math.sqrt(3)
+    line_angle = angle + 30
+    return (line_tension, line_angle)
 
 def formatar_valor(valor):
     if isinstance(valor, complex):
@@ -54,6 +60,13 @@ def calculate_power(polar_tension, polar_current):
 
     return power
 
+def calculate_delta_power(polar_tension, line_current):
+    tension = polar_tension[0]
+    current = line_current[0]
+    angle = polar_tension[1] - line_current[1]
+    return (tension * current * math.cos(angle))
+
+
 def calculate_reative_power(polar_tension, polar_current):
     tension = polar_tension[0]
     tension_angle = polar_tension[1]
@@ -66,6 +79,12 @@ def calculate_reative_power(polar_tension, polar_current):
     power = tension * current * angle_cos
 
     return power
+
+def calculate_reative_delta_power(polar_tension, line_current):
+    tension = polar_tension[0]
+    current = line_current[0]
+    angle = polar_tension[1] - line_current[1]
+    return (tension * current * math.sin(angle))
 
 def calculate_estrela_estrela(entries):
     resultados = {}
@@ -110,8 +129,6 @@ def calculate_estrela_estrela(entries):
         FP = Pt / (Pt ** 2 + (Qa + Qb + Qc) ** 2) ** 0.5
         natureza = "Indutiva" if FP > 0 else "Capacitiva"
 
-       
-
         # Armazenar os resultados
         resultados = {
             'Ia': "{} (A)".format(formatar_valor(Ia)),
@@ -125,7 +142,7 @@ def calculate_estrela_estrela(entries):
             'Qb': "{} (VAr)".format(formatar_valor(Qb)),
             'Qc': "{} (VAr)".format(formatar_valor(Qc)),
             'Qt': "{} (VAr)".format(formatar_valor(Qt)),
-            'Ps': "{} (VA)".format(formatar_valor(potencia_aparente)),
+            'St': "{} (VA)".format(formatar_valor(potencia_aparente)),
             # A natureza do FP (indutiva/capacitiva) permanece como uma string
             'FP': formatar_valor(FP),
             "natureza": natureza
@@ -148,28 +165,32 @@ def calculate_delta_estrela(entries):
         Vbn = converter_polar_para_retangular(Vbn_polar)
         Vcn = converter_polar_para_retangular(Vcn_polar)
 
+        # Transformando para tensao de linha
+        Vab = phase_tension_to_line_tension(Van)
+        Vbc = phase_tension_to_line_tension(Vbn)
+        Vca = phase_tension_to_line_tension(Vcn)
+
         Zan = complex(*map(float, entries['Zan'].get().split(',')))
         Zbn = complex(*map(float, entries['Zbn'].get().split(',')))
         Zcn = complex(*map(float, entries['Zcn'].get().split(',')))
 
         # correntes       
-        Ia = delta_current(Van, Zan)
-        Ib = delta_current(Vbn, Zbn)
-        Ic = delta_current(Vcn, Zcn)
-        
+        Ia = delta_current(Vab, Zbn)
+        Ib = delta_current(Vbc, Zan)
+        Ic = delta_current(Vca, Zcn)
 
         # Calcular potências médias nos ramos
-        Pa = calculate_power(complex_to_polar(Van), Ia)
-        Pb = calculate_power(complex_to_polar(Vbn), Ib)
-        Pc = calculate_power(complex_to_polar(Vcn), Ic)
+        Pa = calculate_delta_power(Vab, Ia)
+        Pb = calculate_power(Vbc, Ib)
+        Pc = calculate_power(Vca, Ic)
 
         # Potência total
         Pt = Pa + Pb + Pc
 
         # Potências reativas
-        Qa = calculate_reative_power(complex_to_polar(Van), Ia)
-        Qb = calculate_reative_power(complex_to_polar(Vbn), Ib)
-        Qc = calculate_reative_power(complex_to_polar(Vcn), Ic)
+        Qa = calculate_reative_power(Vab, Ia)
+        Qb = calculate_reative_power(Vbc, Ib)
+        Qc = calculate_reative_power(Vca, Ic)
 
         Qt = Qa + Qb + Qc
 
@@ -192,7 +213,7 @@ def calculate_delta_estrela(entries):
             'Qb': formatar_valor(Qb),
             'Qc': formatar_valor(Qc),
             'Qt': formatar_valor(Qt),
-            'PotApar': formatar_valor(potencia_aparente),
+            'St': formatar_valor(potencia_aparente),
             # A natureza do FP (indutiva/capacitiva) permanece como uma string
             'FP': formatar_valor(FP),
             "natureza": natureza
